@@ -1,0 +1,72 @@
+---
+title: "exercise-10"
+author: "Madison Pickett"
+date: "4/9/2022"
+output: html_document
+---
+
+```{r setup}
+#Class 04/05
+library(dplyr)
+library(tidyverse)
+f <- "https://raw.githubusercontent.com/difiore/ada-2022-datasets/main/KamilarAndCooperData.csv"
+d <- read_csv(f, col_names = TRUE)
+g<-d[!is.na(d$Body_mass_female_mean),]
+damend<-g[!is.na(g$MaxLongevity_m),]
+plot(damend$MaxLongevity_m~damend$Body_mass_female_mean)
+##When plotted, the data is not linear. It is very heavily skewed to the left. We could log transform the data and see if that makes it appear more linear. 
+log_maxlong<-log(damend$MaxLongevity_m)
+log_massfem<- log(damend$Body_mass_female_mean)
+plot(log_maxlong~log_massfem)
+
+#plotting with log transform makes the data more linear, 
+# This is the Female mass vs Longevity
+library(lmodel2)
+m1<-lm(MaxLongevity_m~Body_mass_female_mean, data=damend)
+m1
+resid_m1<-resid(m1)
+hist(resid_m1)
+g<-d[!is.na(d$Body_mass_female_mean),]
+damend<-g[!is.na(g$MaxLongevity_m),]
+plot(resid_m1~damend$Body_mass_female_mean)
+## This histogram appears to be right skewed, but relatively normally distributed.
+
+#Plotting the Log of Female mass vs Lifespan  
+m2<- lm(damend$MaxLongevity_m~log_massfem)
+m2
+resid_m2<-resid(m2)
+hist(resid_m2)
+plot(resid_m2~log_massfem)
+##Still right skewed but more normally distributed than the data without being log transformed. 
+
+#Plotting the Log of Female mass vs the log of Lifespan  
+m3<- lm(log_maxlong~log_massfem)
+m3
+Resid_m3<-resid(m3)
+hist(Resid_m3)
+plot(Resid_m3~log_massfem)
+## I think the Log of Female mass vs Lifespan was more normally distributed than both of the variables being transformed. When both of the variables are transformed, the histogram looks to be normally distributed with a slight left-skew. 
+
+qqnorm(residuals(m1))
+qqline(residuals(m1))
+
+qqnorm(residuals(m2))
+qqline(residuals(m2))
+
+qqnorm(residuals(m3))
+qqline(residuals(m3))
+
+## In the QQplot, the data where both varibles are transformed looks to be the most normally distributed, as it lies the closest to the diagonal line. All datasets look to be relatively normally distributed. 
+
+plot(m1)
+plot(m2)
+plot(m3)
+
+## All the plots generated in this step give us insight on the linearity of the data and if there are certain points that have a lot of influence on the regression model. It looks like m2, or the model where Female Mass is transformed hasthe least amount of points that heavily skew or lie outside of the predictors for the regression model selection.
+
+shapiro.test(m1$residuals)
+shapiro.test(m2$residuals)
+shapiro.test(m3$residuals)
+## The Shapiro-Wilks test gives us descriptive stats on the normality of the data. In the shapiro wilks test, if the value of p is less than or equal to 0.05, we can conclude it is normally distributed. In this case the untransformed data and the model where Female mass are transformed are the only two models that display normality according to Shapiro Wilks. 
+```
+
